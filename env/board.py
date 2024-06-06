@@ -19,7 +19,7 @@ class TicTacToe(gym.Env):
         self.board_size = (size, size)
         self.num_actions = size**2
         state_space = spaces.Discrete(3**(size**2))
-        self.observation_space = state_space*() # calculate the discrete combinations of all valid tic tac toe boards. Need to cacluate for any board size n.
+        self.observation_space = '''Code''' # calculate the discrete combinations of all valid tic tac toe boards. Need to cacluate for any board size n.
         self.action_space = spaces.Discrete(self.num_actions)
         self.win_reward = win_r
         self.loss_reward = loss_r
