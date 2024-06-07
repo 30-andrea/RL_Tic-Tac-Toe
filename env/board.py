@@ -41,8 +41,16 @@ class TicTacToe(gym.Env):
         terminated = truncated = False
         reward = 0
 
-        # update self.state = new board setting
-        '''Code'''
+        # convert action to row and col indices
+        row, col = divmod(action, self.board_size[1])
+    
+        # check if the action is valid 
+        if self.state[row, col] != 0:
+            raise ValueError("Invalid action: Cell already filled.")
+
+        # update board state
+        self.state[row, col] = 1
+        self.info["players"][1]["actions"].append(action)
         
         # check if the game is over
         if self.gameEndCheck(player = 1):
@@ -56,6 +64,8 @@ class TicTacToe(gym.Env):
                 terminated = True
                 reward = self.loss_reward
         self.render()
+        return self.state.flatten(), reward, terminated or truncated, self.info
+
     
     def step_p2(self, action):
         """
@@ -64,8 +74,16 @@ class TicTacToe(gym.Env):
         terminated = truncated = False
         reward = 0
 
-        # update self.state = new board setting
-        '''Code'''
+        # convert action to row and col indices
+        row, col = divmod(action, self.board_size[1])
+    
+        # check if the action is valid 
+        if self.state[row, col] != 0:
+            raise ValueError("Invalid action: Cell already filled.")
+
+        # update board state
+        self.state[row, col] = 2
+        self.info["players"][2]["actions"].append(action)
         
         # check if the game is over
         if self.gameEndCheck(player = 2):
@@ -79,6 +97,7 @@ class TicTacToe(gym.Env):
                 terminated = True
                 reward = self.loss_reward
         self.render()
+        return self.state.flatten(), reward, terminated or truncated, self.info
 
     def render(self, mode="human") -> None:
         """render the board
