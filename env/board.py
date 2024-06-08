@@ -18,8 +18,6 @@ class TicTacToe(gym.Env):
         """
         self.board_size = (size, size)
         self.num_actions = size**2
-        state_space = spaces.Discrete(3**(size**2))
-        self.observation_space = '''Code''' # calculate the discrete combinations of all valid tic tac toe boards. Need to cacluate for any board size n.
         self.action_space = spaces.Discrete(self.num_actions)
         self.win_reward = win_r
         self.loss_reward = loss_r
@@ -30,9 +28,7 @@ class TicTacToe(gym.Env):
         """
             New empty board. info stores the status of the palyers' moves.
         """
-        self.state = np.zeros(self.board_size)
-        self.info = {"players": {1: {"actions": []}, 2: {"actions": []}}}
-        return self.state.flatten(), self.info
+        self.state = np.ndarray([0]*self.num_actions)
 
     def step_p1(self, action):
         """
@@ -41,16 +37,13 @@ class TicTacToe(gym.Env):
         terminated = truncated = False
         reward = 0
 
-        # convert action to row and col indices
-        row, col = divmod(action, self.board_size[1])
-    
-        # check if the action is valid 
-        if self.state[row, col] != 0:
-            raise ValueError("Invalid action: Cell already filled.")
-
-        # update board state
-        self.state[row, col] = 1
-        self.info["players"][1]["actions"].append(action)
+        # update to next state.
+        # if the agent picks a square already selected, give a large -ve reward to train it to not do that again.
+        if self.state[action] == 0:
+            self.state[action] = 1
+        else:
+            reward = -100
+            terminated = True
         
         # check if the game is over
         if self.gameEndCheck(player = 1):
@@ -74,16 +67,13 @@ class TicTacToe(gym.Env):
         terminated = truncated = False
         reward = 0
 
-        # convert action to row and col indices
-        row, col = divmod(action, self.board_size[1])
-    
-        # check if the action is valid 
-        if self.state[row, col] != 0:
-            raise ValueError("Invalid action: Cell already filled.")
-
-        # update board state
-        self.state[row, col] = 2
-        self.info["players"][2]["actions"].append(action)
+        # update to next state.
+        # if the agent picks a square already selected, give a large -ve reward to train it to not do that again.
+        if self.state[action] == 0:
+            self.state[action] = 1
+        else:
+            reward = -100
+            terminated = True
         
         # check if the game is over
         if self.gameEndCheck(player = 2):
