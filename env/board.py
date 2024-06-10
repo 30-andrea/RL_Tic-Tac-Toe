@@ -22,13 +22,22 @@ class TicTacToe(gym.Env):
         self.win_reward = win_r
         self.loss_reward = loss_r
         self.draw_reward = draw_r
+        self.render_mode = render_mode
         self.reset()
+
+        # pygame setup
+        if self.render_mode == "human":
+            pygame.init()
+            self.screen = pygame.display.set_mode((300,300))
+            pygame.display.set_caption('Tic Tac Toe')
     
     def reset(self):
         """
             New empty board. info stores the status of the palyers' moves.
         """
-        self.state = np.ndarray([0]*self.num_actions)
+        self.state = np.zeros(self.num_actions)
+        self.done = False
+        return self.state
 
     def step_p1(self, action):
         """
@@ -89,38 +98,21 @@ class TicTacToe(gym.Env):
         self.render()
         return self.state.flatten(), reward, terminated or truncated, self.info
 
-    def render(self, mode="human") -> None:
-        """render the board
+    def render(self, mode="human"):
 
-        The following charachters are used to represent the fields,
-            '-' no stone
-            'O' for player 1
-            'X' for player 2
+        if self.render_mode == "human":
+            self.screen.fill((28, 170, 156))
+            self.draw_lines()
 
-        example:
-            ╒═══╤═══╤═══╕
-            │ O │ - │ - │
-            ├───┼───┼───┤
-            │ - │ X │ - │
-            ├───┼───┼───┤
-            │ - │ - │ - │
-            ╘═══╧═══╧═══╛
-        """
-        board = np.zeros((3, 3), dtype=str)
         for ii in range(3):
             for jj in range(3):
-                if self.state[ii, jj] == 0:
-                    board[ii, jj] = "-"
-                elif self.state[ii, jj] == 1:
-                    board[ii, jj] = "X"
-                elif self.state[ii, jj] == 2:
-                    board[ii, jj] = "O"
+                if self.state[ii * 3 + jj] == 1:
+                    pygame.draw.circle(self.screen, (239, 231, 200), (jj * 100 + 50, ii * 100 + 50), 40, 15)
+                elif self.state[ii * 3 + jj] == 2:
+                    pygame.draw.line(self.screen, (66, 66, 66), (jj * 100 + 15, ii * 100 + 85), (jj * 100 + 85, ii * 100 + 15), 25)
+                    pygame.draw.line(self.screen, (66, 66, 66), (jj * 100 + 15, ii * 100 + 15), (jj * 100 + 85, ii * 100 + 85), 25)
 
-        if mode == "human":
-            board = tabulate(board, tablefmt="fancy_grid")
-
-        # instead of return, use pygame to view it.
-        return board
+        pygame.display.update()
     
     def gameEndCheck(self, player):
         '''

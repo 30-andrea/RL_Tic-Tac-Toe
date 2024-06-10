@@ -2,6 +2,7 @@ import numpy as np
 import gymnasium as gym
 import random
 import time
+from env.board import TicTacToe
 
 def state_key(state):
     sum = 0
@@ -9,7 +10,7 @@ def state_key(state):
         sum += state[i]*(3**i)
     return sum
 
-env = '''Code to create obj of custom env we made'''
+env = TicTacToe(render_mode="human")
 env.reset()
 env.render()
 
