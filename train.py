@@ -74,8 +74,6 @@ for episode in range(train_episodes):
 
         state = new_state    
 
-        env.render()
-
         if done:
             #code to display winner
             break

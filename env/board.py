@@ -2,7 +2,8 @@ import numpy as np
 import pygame
 import gymnasium as gym
 from gymnasium import spaces
-from tabulate import tabulate
+from utils.pygame_draw import draw_lines, draw_figures
+from env.env_properties import PHYSICAL_ATTRIBUTES
 
 class TicTacToe(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 16}
@@ -27,16 +28,22 @@ class TicTacToe(gym.Env):
 
         # pygame setup
         if self.render_mode == "human":
-            pygame.init()
-            self.screen = pygame.display.set_mode((300,300))
-            pygame.display.set_caption('Tic Tac Toe')
-    
+            self.pygame_init()
+        
+    def pygme_init(self):
+        pygame.init()
+        pygame.display.set_caption('Tic Tac Toe')
+        self.screen = pygame.display.set_mode((PHYSICAL_ATTRIBUTES.WIDTH, PHYSICAL_ATTRIBUTES.HEIGHT))
+        self.screen.fill(PHYSICAL_ATTRIBUTES.BG_COLOR)
+        self.board = [[0 for _ in range(PHYSICAL_ATTRIBUTES.BOARD_COLS)] for _ in range(PHYSICAL_ATTRIBUTES.BOARD_ROWS)]
+
     def reset(self):
         """
             New empty board. info stores the status of the palyers' moves.
         """
         self.state = np.zeros(self.num_actions)
         self.done = False
+        self.pygme_init()
         return self.state
 
     def step_p1(self, action):
@@ -98,19 +105,16 @@ class TicTacToe(gym.Env):
         self.render()
         return self.state.flatten(), reward, terminated or truncated, self.info
 
-    def render(self, mode="human"):
-
-        if self.render_mode == "human":
-            self.screen.fill((28, 170, 156))
-            self.draw_lines()
-
-        for ii in range(3):
-            for jj in range(3):
-                if self.state[ii * 3 + jj] == 1:
-                    pygame.draw.circle(self.screen, (239, 231, 200), (jj * 100 + 50, ii * 100 + 50), 40, 15)
-                elif self.state[ii * 3 + jj] == 2:
-                    pygame.draw.line(self.screen, (66, 66, 66), (jj * 100 + 15, ii * 100 + 85), (jj * 100 + 85, ii * 100 + 15), 25)
-                    pygame.draw.line(self.screen, (66, 66, 66), (jj * 100 + 15, ii * 100 + 15), (jj * 100 + 85, ii * 100 + 85), 25)
+    def render(self, action, player, mode="human"):
+        draw_lines(self.screen, PHYSICAL_ATTRIBUTES.LINE_COLOR, PHYSICAL_ATTRIBUTES.SQUARE_SIZE, PHYSICAL_ATTRIBUTES.WIDTH, PHYSICAL_ATTRIBUTES.HEIGHT, PHYSICAL_ATTRIBUTES.LINE_WIDTH)
+        draw_figures(self.screen, action, self.board, PHYSICAL_ATTRIBUTES.CIRCLE_COLOR, PHYSICAL_ATTRIBUTES.SQUARE_SIZE, PHYSICAL_ATTRIBUTES.CIRCLE_RADIUS, PHYSICAL_ATTRIBUTES.CIRCLE_WIDTH, PHYSICAL_ATTRIBUTES.CROSS_COLOR, PHYSICAL_ATTRIBUTES.SPACE, PHYSICAL_ATTRIBUTES.CROSS_WIDTH)
+        # for ii in range(3):
+        #     for jj in range(3):
+        #         if player == 1:
+        #             pygame.draw.circle(self.screen, (239, 231, 200), (jj * 100 + 50, ii * 100 + 50), 40, 15)
+        #         elif player == 2:
+        #             pygame.draw.line(self.screen, (66, 66, 66), (jj * 100 + 15, ii * 100 + 85), (jj * 100 + 85, ii * 100 + 15), 25)
+        #             pygame.draw.line(self.screen, (66, 66, 66), (jj * 100 + 15, ii * 100 + 15), (jj * 100 + 85, ii * 100 + 85), 25)
 
         pygame.display.update()
     
