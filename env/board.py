@@ -24,6 +24,7 @@ class TicTacToe(gym.Env):
         self.loss_reward = loss_r
         self.draw_reward = draw_r
         self.render_mode = render_mode
+        self.info = {}
         self.reset()
 
         # pygame setup
@@ -43,6 +44,16 @@ class TicTacToe(gym.Env):
         """
         self.state = np.zeros(self.num_actions)
         self.done = False
+        self.info = {
+            'players': {
+                1: {
+                    'actions': []
+                },
+                2: {
+                    'actions': []
+                }
+            }
+        }
         self.pygame_init()
         return self.state
 
@@ -52,28 +63,29 @@ class TicTacToe(gym.Env):
         """
         terminated = truncated = False
         reward = 0
+        if len(self.info['players'][1]['actions']) >= 9:
+            truncated = True
+            reward = self.draw_reward
+            self.render(None, 1)
+        else:
+            # update to next state.
+            # if the agent picks a square already selected, give a large -ve reward to train it to not do that again.
+            if self.state[action] == 0:
+                self.state[action] = 1
+                self.info['players'][1]['actions'].append(action)
+            else:
+                reward = -100
+                terminated = True
+                return self.state.flatten(), reward, terminated or truncated, self.info
 
-        # update to next state.
-        # if the agent picks a square already selected, give a large -ve reward to train it to not do that again.
-        if self.state[action] == 0:
-            self.state[action] = 1
-        else:
-            reward = -100
-            terminated = True
-            return self.state.flatten(), reward, terminated or truncated, self.info
-        
-        # check if the game is over
-        if self.gameEndCheck(player = 1):
-            terminated = True
-            reward = self.win_reward
-        else:
-            if len(self.info['players'][1]['actions']) >= 9:
-                truncated = True
-                reward = self.draw_reward
+            # check if the game is over
+            if self.gameEndCheck(player = 1):
+                terminated = True
+                reward = self.win_reward
             else:
                 terminated = True
                 reward = self.loss_reward
-        self.render()
+            self.render(action, 1)
         return self.state.flatten(), reward, terminated or truncated, self.info
 
     
@@ -83,31 +95,33 @@ class TicTacToe(gym.Env):
         """
         terminated = truncated = False
         reward = 0
-
-        # update to next state.
-        # if the agent picks a square already selected, give a large -ve reward to train it to not do that again.
-        if self.state[action] == 0:
-            self.state[action] = 2
+        if len(self.info['players'][2]['actions']) >= 9:
+            truncated = True
+            self.render(None, 2)
         else:
-            reward = -100
-            terminated = True
-            return self.state.flatten(), reward, terminated or truncated, self.info
-        
-        # check if the game is over
-        if self.gameEndCheck(player = 2):
-            terminated = True
-            reward = self.win_reward
-        else:
-            if len(self.info['players'][1]['actions']) >= 9:
-                truncated = True
-                reward = self.draw_reward
+            # update to next state.
+            # if the agent picks a square already selected, give a large -ve reward to train it to not do that again.
+            if self.state[action] == 0:
+                self.state[action] = 2
+                self.info['players'][2]['actions'].append(action)
+            else:
+                reward = -100
+                terminated = True
+                return self.state.flatten(), reward, terminated or truncated, self.info
+            
+            # check if the game is over
+            if self.gameEndCheck(player = 2):
+                terminated = True
+                reward = self.win_reward
             else:
                 terminated = True
                 reward = self.loss_reward
-        self.render()
+            self.render(action, 2)
         return self.state.flatten(), reward, terminated or truncated, self.info
 
     def render(self, action, player, mode="human"):
+        if action == None:
+            return
         draw_lines(self.screen, PHYSICAL_ATTRIBUTES.LINE_COLOR, PHYSICAL_ATTRIBUTES.SQUARE_SIZE, PHYSICAL_ATTRIBUTES.WIDTH, PHYSICAL_ATTRIBUTES.HEIGHT, PHYSICAL_ATTRIBUTES.LINE_WIDTH)
         draw_figures(self.screen, action, player, self.board, PHYSICAL_ATTRIBUTES.CIRCLE_COLOR, PHYSICAL_ATTRIBUTES.SQUARE_SIZE, PHYSICAL_ATTRIBUTES.CIRCLE_RADIUS, PHYSICAL_ATTRIBUTES.CIRCLE_WIDTH, PHYSICAL_ATTRIBUTES.CROSS_COLOR, PHYSICAL_ATTRIBUTES.SPACE, PHYSICAL_ATTRIBUTES.CROSS_WIDTH)
         # for ii in range(3):

@@ -4,12 +4,13 @@ import random
 import time
 from env.board import TicTacToe
 import pandas as pd
+from tqdm import tqdm
 
 def state_key(state):
     sum = 0
     for i in range(len(state)):
         sum += state[i]*(3**i)
-    return sum
+    return int(sum)
 
 env = TicTacToe(render_mode="human")
 env.reset()
@@ -32,7 +33,7 @@ training_rewards_p1 = []
 training_rewards_p2 = []  
 epsilons = []
 
-for episode in range(train_episodes):
+for episode in tqdm(range(train_episodes)):
     #Reseting the environment each time as per requirement
     state = env.reset()    
     #Starting the tracker for the rewards
