@@ -4,6 +4,7 @@ import gymnasium as gym
 from gymnasium import spaces
 from utils.pygame_draw import draw_lines, draw_figures
 from env.env_properties import PHYSICAL_ATTRIBUTES
+import time
 
 class TicTacToe(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 16}
@@ -19,7 +20,6 @@ class TicTacToe(gym.Env):
         """
         self.board_size = (size, size)
         self.num_actions = size**2
-        self.action_space = spaces.Discrete(self.num_actions)
         self.win_reward = win_r
         self.loss_reward = loss_r
         self.draw_reward = draw_r
@@ -30,7 +30,7 @@ class TicTacToe(gym.Env):
         if self.render_mode == "human":
             self.pygame_init()
         
-    def pygme_init(self):
+    def pygame_init(self):
         pygame.init()
         pygame.display.set_caption('Tic Tac Toe')
         self.screen = pygame.display.set_mode((PHYSICAL_ATTRIBUTES.WIDTH, PHYSICAL_ATTRIBUTES.HEIGHT))
@@ -43,7 +43,7 @@ class TicTacToe(gym.Env):
         """
         self.state = np.zeros(self.num_actions)
         self.done = False
-        self.pygme_init()
+        self.pygame_init()
         return self.state
 
     def step_p1(self, action):
@@ -60,6 +60,7 @@ class TicTacToe(gym.Env):
         else:
             reward = -100
             terminated = True
+            return self.state.flatten(), reward, terminated or truncated, self.info
         
         # check if the game is over
         if self.gameEndCheck(player = 1):
@@ -86,10 +87,11 @@ class TicTacToe(gym.Env):
         # update to next state.
         # if the agent picks a square already selected, give a large -ve reward to train it to not do that again.
         if self.state[action] == 0:
-            self.state[action] = 1
+            self.state[action] = 2
         else:
             reward = -100
             terminated = True
+            return self.state.flatten(), reward, terminated or truncated, self.info
         
         # check if the game is over
         if self.gameEndCheck(player = 2):
@@ -115,31 +117,47 @@ class TicTacToe(gym.Env):
         #         elif player == 2:
         #             pygame.draw.line(self.screen, (66, 66, 66), (jj * 100 + 15, ii * 100 + 85), (jj * 100 + 85, ii * 100 + 15), 25)
         #             pygame.draw.line(self.screen, (66, 66, 66), (jj * 100 + 15, ii * 100 + 15), (jj * 100 + 85, ii * 100 + 85), 25)
-
+        time.sleep(3)
         pygame.display.update()
     
     def gameEndCheck(self, player):
         '''
         function to check if a move has caused the game to end i.e. win/ draw.
         '''
-        done = False
-        bool_matrix = self.state == player
-        for ii in range(3):
-            # check if three equal tokens are aligned (horizontal, verical or diagonal)
-            if (
-                # check columns
-                np.sum(bool_matrix[:, ii]) == 3
-                # check rows
-                or np.sum(bool_matrix[ii, :]) == 3
-                # check diagonal
-                or np.sum([bool_matrix[0, 0], bool_matrix[1, 1], bool_matrix[2, 2]])
-                == 3
-                or np.sum([bool_matrix[0, 2], bool_matrix[1, 1], bool_matrix[2, 0]])
-                == 3
-            ):
-                done = True
-                break
-        return done
+        rows, cols = self.board_size
+        grid = self.state.reshape(-1, self.board_size[0])
+        num_winning = rows
+        for r in range(rows):
+            for c in range(cols):
+                value = grid[r][c]
+                if value == player:
+
+                    # left, top, right, bottom, top-left, top-right, bottom-right, bottom-left
+                    check_ver_list = [0, -1, 0, 1, -1, -1, 1, 1]
+                    check_hor_list = [-1, 0, 1, 0, -1, 1, 1, -1]
+
+                    for i in range(len(check_ver_list)):
+                        row_current = r
+                        col_current = c
+
+                        check_ver = check_ver_list[i]
+                        check_hor = check_hor_list[i]
+
+                        for line in range(num_winning - 1):
+                            row_current = row_current + check_ver
+                            col_current = col_current + check_hor
+
+                            if row_current >= rows or col_current >= cols or row_current < 0 or col_current < 0:
+                                break
+
+                            value_current = grid[row_current][col_current]
+                            if value_current != player:
+                                break
+
+                            if (line + 1) == (num_winning - 1):
+                                return True
+
+        return False
     
 if __name__ == "__main__":
     env = gym.envs.make("TTT-v0")

@@ -3,6 +3,7 @@ import gymnasium as gym
 import random
 import time
 from env.board import TicTacToe
+import pandas as pd
 
 def state_key(state):
     sum = 0
@@ -12,7 +13,6 @@ def state_key(state):
 
 env = TicTacToe(render_mode="human")
 env.reset()
-env.render()
 
 eta = 0.7 # exploration exploitation               
 discount_factor = 0.618               
@@ -25,8 +25,8 @@ train_episodes = 2000
 test_episodes = 100          
 max_steps = 100
 
-Q_p1 = np.zeros((3**(env.observation_space+1), env.action_space))
-Q_p2 = np.zeros((3**(env.observation_space+1), env.action_space))
+Q_p1 = np.zeros((3**10 - 3, env.num_actions))
+Q_p2 = np.zeros((3**10 - 3, env.num_actions))
 
 training_rewards_p1 = []
 training_rewards_p2 = []  
@@ -43,7 +43,7 @@ for episode in range(train_episodes):
         if exp_exp_tradeoff > epsilon:
             action_p1 = np.argmax(Q_p1[state,:]) 
         else:
-            action_p1 = random.randint(0, env.action_space-1) 
+            action_p1 = random.randint(0, env.num_actions-1) 
         new_state, reward, done, info = env.step_p1(action_p1)
 
         s_key = state_key(state)
@@ -82,3 +82,9 @@ for episode in range(train_episodes):
     training_rewards_p1.append(total_training_rewards_p1)
     training_rewards_p2.append(total_training_rewards_p2)
     epsilons.append(epsilon)
+
+cols = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+data_p1 = pd.DataFrame(Q_p1, columns=cols)
+data_p2 = pd.DataFrame(Q_p2, columns=cols)
+data_p1.to_csv('player1.csv')
+data_p2.to_csv('player2.csv')
