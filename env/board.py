@@ -82,9 +82,6 @@ class TicTacToe(gym.Env):
             if self.gameEndCheck(player = 1):
                 terminated = True
                 reward = self.win_reward
-            else:
-                terminated = True
-                reward = self.loss_reward
             self.render(action, 1)
         return self.state.flatten(), reward, terminated or truncated, self.info
 
@@ -113,9 +110,6 @@ class TicTacToe(gym.Env):
             if self.gameEndCheck(player = 2):
                 terminated = True
                 reward = self.win_reward
-            else:
-                terminated = True
-                reward = self.loss_reward
             self.render(action, 2)
         return self.state.flatten(), reward, terminated or truncated, self.info
 
@@ -123,7 +117,7 @@ class TicTacToe(gym.Env):
         if action == None:
             return
         draw_lines(self.screen, PHYSICAL_ATTRIBUTES.LINE_COLOR, PHYSICAL_ATTRIBUTES.SQUARE_SIZE, PHYSICAL_ATTRIBUTES.WIDTH, PHYSICAL_ATTRIBUTES.HEIGHT, PHYSICAL_ATTRIBUTES.LINE_WIDTH)
-        draw_figures(self.screen, action, player, self.board, PHYSICAL_ATTRIBUTES.CIRCLE_COLOR, PHYSICAL_ATTRIBUTES.SQUARE_SIZE, PHYSICAL_ATTRIBUTES.CIRCLE_RADIUS, PHYSICAL_ATTRIBUTES.CIRCLE_WIDTH, PHYSICAL_ATTRIBUTES.CROSS_COLOR, PHYSICAL_ATTRIBUTES.SPACE, PHYSICAL_ATTRIBUTES.CROSS_WIDTH)
+        draw_figures(self.screen, action, player, PHYSICAL_ATTRIBUTES.CIRCLE_COLOR, PHYSICAL_ATTRIBUTES.SQUARE_SIZE, PHYSICAL_ATTRIBUTES.CIRCLE_RADIUS, PHYSICAL_ATTRIBUTES.CIRCLE_WIDTH, PHYSICAL_ATTRIBUTES.CROSS_COLOR, PHYSICAL_ATTRIBUTES.SPACE, PHYSICAL_ATTRIBUTES.CROSS_WIDTH)
         # for ii in range(3):
         #     for jj in range(3):
         #         if player == 1:
@@ -131,8 +125,7 @@ class TicTacToe(gym.Env):
         #         elif player == 2:
         #             pygame.draw.line(self.screen, (66, 66, 66), (jj * 100 + 15, ii * 100 + 85), (jj * 100 + 85, ii * 100 + 15), 25)
         #             pygame.draw.line(self.screen, (66, 66, 66), (jj * 100 + 15, ii * 100 + 15), (jj * 100 + 85, ii * 100 + 85), 25)
-        time.sleep(3)
-        pygame.display.update()
+        pygame.display.flip()
     
     def gameEndCheck(self, player):
         '''
