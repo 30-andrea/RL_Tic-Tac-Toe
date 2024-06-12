@@ -54,7 +54,7 @@ class TicTacToe(gym.Env):
                 }
             },
             'moves': 0,
-            'status': 'empty',
+            'status': -1,
             'filled':[]
         }
         self.pygame_init()
@@ -67,7 +67,7 @@ class TicTacToe(gym.Env):
         terminated = truncated = False
         reward = 0
         if self.info['moves'] >= 9:
-            truncated = True
+            truncated = terminated = True
             reward = self.draw_reward
             self.render(None, 1)
         else:
@@ -87,6 +87,7 @@ class TicTacToe(gym.Env):
             if self.gameEndCheck(player = 1):
                 terminated = True
                 reward = self.win_reward
+                self.info['status'] = 1
             self.render(action, 1)
         return self.state.flatten(), reward, terminated or truncated, self.info
 
@@ -98,7 +99,7 @@ class TicTacToe(gym.Env):
         terminated = truncated = False
         reward = 0
         if self.info['moves'] >= 9:
-            truncated = True
+            truncated = terminated = True
             self.render(None, 2)
         else:
             # update to next state.
@@ -117,6 +118,7 @@ class TicTacToe(gym.Env):
             if self.gameEndCheck(player = 2):
                 terminated = True
                 reward = self.win_reward
+                self.info['status'] = 2
             self.render(action, 2)
         return self.state.flatten(), reward, terminated or truncated, self.info
 

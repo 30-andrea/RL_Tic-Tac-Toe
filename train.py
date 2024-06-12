@@ -41,20 +41,21 @@ training_rewards_p1 = []
 training_rewards_p2 = []  
 epsilons = []
 
+games_won_p1 = games_won_p2 = 0
+
 for episode in tqdm(range(train_episodes)):
     #Reseting the environment each time as per requirement
     state = env.reset()    
     #Starting the tracker for the rewards
     total_training_rewards_p1, total_training_rewards_p2 = 0,0
     for step in range(100):
+
         s_key = state_key(state)
 
-        # exp_exp_tradeoff = random.uniform(0, 1) 
-        # if exp_exp_tradeoff > epsilon:
-        #     action_p1 = np.argmax(Q_p1[s_key,:]) 
-        # else:
-        #     action_p1 = random.randint(0, env.num_actions-1) 
-        action_p1 = get_best_action(epsilon, Q_p1, s_key)
+        if env.info['moves'] >= 9:
+            action_p1 = None
+        else:
+            action_p1 = get_best_action(epsilon, Q_p1, s_key)
         while action_p1 in env.info['filled']:
             action_p1 = get_best_action(epsilon, Q_p1, s_key)
         new_state, reward, done, info = env.step_p1(action_p1)
@@ -77,14 +78,10 @@ for episode in tqdm(range(train_episodes)):
 
         state = new_state
         s_key = state_key(state)
-        #print(state)
-        # exp_exp_tradeoff = random.uniform(0, 1) 
-        
-        # if exp_exp_tradeoff > epsilon:
-        #     action_p2 = np.argmax(Q_p2[s_key,:]) 
-        # else:
-        #     action_p2 = random.randint(0, env.num_actions-1) 
-        action_p2 = get_best_action(epsilon, Q_p2, s_key)
+        if env.info['moves'] >= 9:
+            action_p2 = None
+        else:
+            action_p2 = get_best_action(epsilon, Q_p2, s_key)
         while action_p2 in env.info['filled']:
             action_p2 = get_best_action(epsilon, Q_p2, s_key)
         new_state, reward, done, info = env.step_p2(action_p2)
@@ -105,6 +102,14 @@ for episode in tqdm(range(train_episodes)):
         if done:
             #code to display winner
             break
+    if env.info['status'] == 1:
+        print(f"episode {episode + 1}: X won")
+        games_won_p1 += 1
+    elif env.info['status'] == 2:
+        print(f"episode {episode + 1}: O won")
+        games_won_p2 += 1
+    else:
+        print(f"episode {episode + 1}: Draw")
 
     epsilon = min_epsilon+(max_epsilon-min_epsilon)*np.exp(-decay*episode)
     training_rewards_p1.append(total_training_rewards_p1)
