@@ -12,6 +12,14 @@ def state_key(state):
         sum += state[i]*(3**i)
     return int(sum)
 
+def get_best_action(epsilon, Q, key):
+    exp_exp_tradeoff = random.uniform(0, 1)  
+    if exp_exp_tradeoff > epsilon:
+        action = np.argmax(Q[key,:]) 
+    else:
+        action = random.randint(0, env.num_actions-1)
+    return action
+
 env = TicTacToe(render_mode="human")
 env.reset()
 
@@ -39,20 +47,25 @@ for episode in tqdm(range(train_episodes)):
     #Starting the tracker for the rewards
     total_training_rewards_p1, total_training_rewards_p2 = 0,0
     for step in range(100):
-        exp_exp_tradeoff = random.uniform(0, 1) 
-        
-        if exp_exp_tradeoff > epsilon:
-            action_p1 = np.argmax(Q_p1[state,:]) 
-        else:
-            action_p1 = random.randint(0, env.num_actions-1) 
+        s_key = state_key(state)
+
+        # exp_exp_tradeoff = random.uniform(0, 1) 
+        # if exp_exp_tradeoff > epsilon:
+        #     action_p1 = np.argmax(Q_p1[s_key,:]) 
+        # else:
+        #     action_p1 = random.randint(0, env.num_actions-1) 
+        action_p1 = get_best_action(epsilon, Q_p1, s_key)
+        while action_p1 in env.info['filled']:
+            action_p1 = get_best_action(epsilon, Q_p1, s_key)
         new_state, reward, done, info = env.step_p1(action_p1)
         if reward == env.win_reward:
             total_training_rewards_p2 += env.loss_reward
-        if episode%5 == 0:
-            time.sleep(3)
+            Q_p2[s_key, :] = eta*Q_p2[s_key, :]+ (1-eta)*(env.loss_reward+discount_factor*np.max(Q_p2[s1_key, :]))
+        if episode%50 == 0:
+            time.sleep(1)
         else:
-            time.sleep(0.5)
-        s_key = state_key(state)
+            time.sleep(0.1)
+        
         s1_key = state_key(new_state)
         Q_p1[s_key, action_p1] = eta*Q_p1[s_key, action_p1]+ (1-eta)*(reward+discount_factor*np.max(Q_p1[s1_key, :]))
         #Increasing our total reward and updating the state
@@ -63,21 +76,25 @@ for episode in tqdm(range(train_episodes)):
             break
 
         state = new_state
-
-        exp_exp_tradeoff = random.uniform(0, 1) 
+        s_key = state_key(state)
+        #print(state)
+        # exp_exp_tradeoff = random.uniform(0, 1) 
         
-        if exp_exp_tradeoff > epsilon:
-            action_p2 = np.argmax(Q_p1[new_state,:]) 
-        else:
-            action_p2 = random.randint(0, env.num_actions-1) 
+        # if exp_exp_tradeoff > epsilon:
+        #     action_p2 = np.argmax(Q_p2[s_key,:]) 
+        # else:
+        #     action_p2 = random.randint(0, env.num_actions-1) 
+        action_p2 = get_best_action(epsilon, Q_p2, s_key)
+        while action_p2 in env.info['filled']:
+            action_p2 = get_best_action(epsilon, Q_p2, s_key)
         new_state, reward, done, info = env.step_p2(action_p2)
         if reward == env.win_reward:
             total_training_rewards_p1 += env.loss_reward
-        if episode%5 == 0:
+            Q_p1[s_key, :] = eta*Q_p1[s_key, :]+ (1-eta)*(env.loss_reward+discount_factor*np.max(Q_p1[s1_key, :]))
+        if episode%50 == 0:
             time.sleep(1)
         else:
             time.sleep(0.1)
-        s_key = state_key(state)
         s1_key = state_key(new_state)
         Q_p2[s_key, action_p2] = eta*Q_p2[s_key, action_p2]+ (1-eta)*(reward+discount_factor*np.max(Q_p2[s1_key, :]))
         #Increasing our total reward and updating the state
